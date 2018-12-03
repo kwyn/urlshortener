@@ -1,6 +1,8 @@
 package urlshort
 
 import (
+	"io/ioutil"
+
 	"gopkg.in/yaml.v2"
 
 	"net/http"
@@ -55,10 +57,14 @@ func YAMLtoMap(yml []byte) (map[string]string, error) {
 	return pathToUrls, nil
 }
 
-func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	pathToUrls, err := YAMLtoMap(yml)
-	if err != nil {
-		return nil, err
+func YAMLHandler(filename string, fallback http.Handler) (http.HandlerFunc, error) {
+	yml, ioError := ioutil.ReadFile(filename)
+	if ioError != nil {
+		return nil, ioError
+	}
+	pathToUrls, ymlErr := YAMLtoMap(yml)
+	if ymlErr != nil {
+		return nil, ymlErr
 	}
 	// TODO: Implement this...
 	// deserialize yml into map
