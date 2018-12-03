@@ -1,6 +1,8 @@
 package urlshort
 
 import (
+	"gopkg.in/yaml.v2"
+
 	"net/http"
 )
 
@@ -18,7 +20,6 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 		} else {
 			fallback.ServeHTTP(w, r)
 		}
-
 	}
 }
 
@@ -39,30 +40,27 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
 
-// Struct for yaml entries
-/*
-type pathConfig struct {
-	paths struct {
-		Path string, // yaml:path
-		Url string // yaml:url
+func YAMLtoMap(yml []byte) (map[string]string, error) {
+	// unmarshal into a holder
+	mappings := []map[string]string{}
+	err := yaml.Unmarshal(yml, &mappings)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func (c *pathConfig) Parse(data []byte) error {
-	if err := yaml.Unmarshal(data, c) {
-		return err
+	pathToUrls := make(map[string]string)
+	for _, m := range mappings {
+		pathToUrls[m["path"]] = m["url"]
 	}
-	if c.Url=== "" {
-		return errors.New("PathConfig: invalid `url`"
-	}
-	return nil
+	return pathToUrls, nil
 }
 
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	pathToUrls, err := YAMLtoMap(yml)
+	if err != nil {
+		return nil, err
+	}
 	// TODO: Implement this...
 	// deserialize yml into map
-	var config pathConfig
-
-	return MapHandler(pathsToUrls, fallback)
+	return MapHandler(pathToUrls, fallback), nil
 }
-*/
